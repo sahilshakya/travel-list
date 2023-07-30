@@ -1,18 +1,20 @@
 import { useState } from "react";
 
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: false },
-  { id: 2, description: "Socks", quantity: 12, packed: false },
-  { id: 4, description: "nosocks", quantity: 122, packed: true },
-  { id: 3, description: "nosocks", quantity: 122, packed: true },
-];
-
 export default function App() {
+  const [items, setItems] = useState([]);
+
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  function handleDeleteItems(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
   return (
     <div className="app">
       <Logo />
-      <Form />
-      <PackingList />
+      <Form onAddItem={handleAddItems} />
+      <PackingList items={items} onDeleteItem={handleDeleteItems} />
       <Stats />
     </div>
   );
@@ -22,7 +24,7 @@ function Logo() {
   return <h1>Far Away</h1>;
 }
 
-function Form() {
+function Form({ onAddItem }) {
   const [descp, setDesp] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -35,8 +37,9 @@ function Form() {
 
     const newItem = { descp, quantity, packed: false, id: Date.now() };
     console.log(newItem);
-    setDesp();
-    setQuantity();
+    onAddItem(newItem);
+    setDesp("");
+    setQuantity(1);
   }
   return (
     <form className="add-form" onSubmit={handleSubmit}>
@@ -62,23 +65,29 @@ function Form() {
   );
 }
 
-function PackingList() {
+function PackingList({ items, onDeleteItem }) {
   return (
     <div className="list">
-      {initialItems.map((item) => (
-        <Item item={item} key={item.id} />
+      {items.map((item) => (
+        <Item item={item} key={item.id} onDeleteItem={onDeleteItem} />
       ))}
     </div>
   );
 }
 
-function Item({ item }) {
+function Item({ item, onDeleteItem }) {
   return (
     <div>
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
-        {item.quantity} {item.description}
+        {item.quantity} {item.descp}
       </span>
-      <button>x</button>
+      <button
+        onClick={() => {
+          onDeleteItem(item.id);
+        }}
+      >
+        x
+      </button>
     </div>
   );
 }
