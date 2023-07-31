@@ -10,12 +10,29 @@ export default function App() {
   function handleDeleteItems(id) {
     setItems((items) => items.filter((item) => item.id !== id));
   }
+
+  function handleToggleItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+
+    function handleClear() {
+      setItems([]);
+    }
+  }
   return (
     <div className="app">
       <Logo />
       <Form onAddItem={handleAddItems} />
-      <PackingList items={items} onDeleteItem={handleDeleteItems} />
-      <Stats />
+      <PackingList
+        items={items}
+        onDeleteItem={handleDeleteItems}
+        onToggleItem={handleToggleItem}
+        onClear={handleClear}
+      />
+      <Stats items={items} />
     </div>
   );
 }
@@ -65,19 +82,42 @@ function Form({ onAddItem }) {
   );
 }
 
-function PackingList({ items, onDeleteItem }) {
+function PackingList({ items, onDeleteItem, onToggleItem, onClear }) {
   return (
     <div className="list">
-      {items.map((item) => (
-        <Item item={item} key={item.id} onDeleteItem={onDeleteItem} />
-      ))}
+      <div>
+        {items.map((item) => (
+          <Item
+            item={item}
+            key={item.id}
+            onDeleteItem={onDeleteItem}
+            onToggleItem={onToggleItem}
+          />
+        ))}
+      </div>
+
+      <div className="actions">
+        <select>
+          <option value="input"> Sort by input order</option>
+          <option value="description"> Sort bydescription</option>
+          <option value="packed"> Sort by packed status</option>
+        </select>
+      </div>
+      <div className="actions">
+        <button onClick={onClear}>Clear</button>
+      </div>
     </div>
   );
 }
 
-function Item({ item, onDeleteItem }) {
+function Item({ item, onDeleteItem, onToggleItem }) {
   return (
     <div>
+      <input
+        type="checkbox"
+        value={item.packed}
+        onChange={() => onToggleItem(item.id)}
+      />
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity} {item.descp}
       </span>
@@ -92,10 +132,25 @@ function Item({ item, onDeleteItem }) {
   );
 }
 
-function Stats() {
+function Stats({ items }) {
+  if (!items.length) {
+    return (
+      <footer className="stats">
+        <em>You have nothing on the list</em>
+      </footer>
+    );
+  }
+  const numItems = items.length;
+  const numpacked = items.filter((item) => item.packed).length;
+  const percentage = (numpacked / numItems) * 100;
+
   return (
     <footer className="stats">
-      <em>You have X items on your listm and you already packed X</em>
+      <em>
+        {percentage === 100
+          ? "You've got everything"
+          : `You have ${numItems} items on your list and you already packed${numpacked}(${percentage}%)`}
+      </em>
     </footer>
   );
 }
